@@ -390,13 +390,14 @@ function SetAnimation(frame)
         frame:SetScript("OnUpdate", function(self, elapsed)
             local progress = duration > 0 and (GetTime() - self.startTime) / duration or 1;
             local currentValue = value + (difference * progress);
-            if progress > 1 then
+            if progress >= 1 then
                 progress = 1;
                 onProgress(toValue);
-                self:SetScript("OnUpdate", onUpdateCopy);
-                if onComplete then
+                if onComplete ~= nil then
+                    frame.onComplete = onComplete;
                     onComplete();
                 end
+                self:SetScript("OnUpdate", onUpdateCopy);
             else
                 onProgress(currentValue);
             end
@@ -406,10 +407,6 @@ function SetAnimation(frame)
     end
 
     frame.StopAnimation = function(self)
-        if self.onUpdateCopy then
-            self:SetScript("OnUpdate", self.onUpdateCopy);
-        else
-            self:SetScript("OnUpdate", nil);
-        end
+        self:SetScript("OnUpdate", self.onUpdateCopy);
     end
 end

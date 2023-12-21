@@ -322,13 +322,13 @@ function CT:HandleStartCastEvent(castGUID, spellId, spellCastType)
     frame.damageText:SetText("");
     frame.healText:SetText("");
     frame.order = 1;
-    -- frame:SetAlpha(1);
+    frame:SetAlpha(1);
     frame:StartAnimation(20, 0, 0.2, function(value)
         frame:SetPoint("TOPLEFT", 0, value);
     end)
-    frame:StartAnimation(0, 1, 0.2, function(value)
-        frame:SetAlpha(value);
-    end)
+    -- frame:StartAnimation(0, 1, 0.2, function(value)
+    --     frame:SetAlpha(value);
+    -- end)
     -- frame:SetPoint("TOPLEFT", 0, 0);
     -- Setup bar and animation
     -- local spellCastTime = select(4, GetSpellInfo(spellId));
@@ -348,6 +348,8 @@ function CT:HandleStartCastEvent(castGUID, spellId, spellCastType)
     frame.castingBar:SetAlpha(1);
     frame.castingBar:StartAnimation(0, 100, spellCastTime / 1000, function(value)
         frame.castingBar:SetValue(value);
+    end, function()
+        frame.castingBar:SetAlpha(0);
     end);
     if spellCastTime == 0 then
         frame.castingBar:SetAlpha(0);
@@ -418,9 +420,9 @@ function CT:HandleCastSuccessEvent(castGUID, spellID, shouldStopAnimation, spell
     if frame then
         if shouldStopAnimation then
             frame.castingBar:StopAnimation();
+            frame.castingBar:SetAlpha(0);
         end
         frame.castingBar:SetValue(100);
-
         frame.logData.eventType = "SPELL_CAST_SUCCESS";
     else
         frame = CT:HandleStartCastEvent(castGUID, spellID, spellCastType);
