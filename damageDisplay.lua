@@ -5,6 +5,127 @@ local CT = {};
 
 core.CT = CT;
 
+local CASTING_BAR_HEIGHT = 20;
+
+local function CreateCastingBar(i, parent)
+    local frame = CreateFrame("Frame", "CombatTextFrame" .. i, parent);
+    -- frame:SetSize(300, 20);
+    frame:SetHeight(CASTING_BAR_HEIGHT);
+    frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, CASTING_BAR_HEIGHT)
+    frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, CASTING_BAR_HEIGHT)
+    frame:SetFrameStrata("HIGH");
+    frame:SetFrameLevel(2);
+    frame.order = 0;
+    frame:SetAlpha(0);
+    SetAnimation(frame);
+
+    -- Store combat log event data
+    frame.logData = nil;
+
+    -- Spell icon
+    frame.icon = frame:CreateTexture(nil, "OVERLAY");
+    frame.icon:SetSize(CASTING_BAR_HEIGHT, CASTING_BAR_HEIGHT);
+    frame.icon:SetPoint("LEFT", frame, "LEFT", 0, 0);
+
+    -- Spell Name
+    frame.spellNameText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+    frame.spellNameText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    frame.spellNameText:SetTextColor(1, 1, 1, 1)
+    frame.spellNameText:SetPoint("LEFT", frame.icon, "RIGHT", 5, 0);
+    frame.spellNameText:SetJustifyH("LEFT");
+    frame.spellNameText:SetJustifyV("MIDDLE");
+
+    -- Target 
+    frame.generalInfoText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+    frame.generalInfoText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    frame.generalInfoText:SetTextColor(1, 1, 1, 1)
+    frame.generalInfoText:SetPoint("LEFT", frame.spellNameText, "RIGHT", 0, 0);
+    frame.generalInfoText:SetJustifyH("LEFT");
+    frame.generalInfoText:SetJustifyV("MIDDLE");
+
+    -- Damage amount
+    frame.damageText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+    frame.damageText:SetPoint("RIGHT", frame, "RIGHT", -5, 0);
+    frame.damageText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    frame.damageText:SetTextColor(1, 1, 1, 1)
+    frame.damageText:SetJustifyH("RIGHT");
+    frame.damageText:SetJustifyV("MIDDLE");
+
+    -- Heal amount
+    frame.healText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+    frame.healText:SetPoint("RIGHT", frame, "RIGHT", -5, 0);
+    frame.healText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    frame.healText:SetTextColor(1, 1, 1, 1)
+    frame.healText:SetJustifyH("RIGHT");
+    frame.healText:SetJustifyV("MIDDLE");
+    frame.healText:SetTextColor(0, 1, 0, 1);
+
+    -- Casting bar
+    frame.castingBar = CreateFrame("StatusBar", "CombatTextFrame" .. i .. "CastingBar", frame);
+    frame.castingBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 25, 0);
+    frame.castingBar:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0);
+    -- frame.castingBar:SetSize(275, 20);
+    frame.castingBar:SetStatusBarTexture("UI-CastingBar-Filling-Background");
+    frame.castingBar:SetFrameStrata("HIGH");
+    frame.castingBar:SetFrameLevel(1);
+    -- Set spark
+    frame.castingBar.Spark = frame.castingBar:CreateTexture(nil, "OVERLAY");
+    frame.castingBar.Spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark");
+    frame.castingBar.Spark:SetBlendMode("ADD");
+    frame.castingBar.Spark:SetSize(CASTING_BAR_HEIGHT, CASTING_BAR_HEIGHT + 10);
+    frame.castingBar.Spark:SetPoint("CENTER", frame.castingBar:GetStatusBarTexture(), "RIGHT", 0, 0);
+
+    -- DEBUG INFO -- 
+    -- frame.indexText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+    -- frame.indexText:SetPoint("CENTER", frame, "CENTER", 0, 0);
+    -- frame.indexText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    -- frame.indexText:SetTextColor(1, 0, 0, 1)
+    -- frame.indexText:SetJustifyH("MIDDLE");
+    -- frame.indexText:SetJustifyV("MIDDLE");
+    -- frame.indexText:SetText(i);
+    -- frame.orderText = frame:CreateFontString(nil, "OVERLAY", "
+    -- frame.orderText:SetPoint("CENTER", frame, "CENTER", 10, 0);
+    -- frame.orderText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    -- frame.orderText:SetTextColor(1, 0, 0, 1)
+    -- frame.orderText:SetJustifyH("MIDDLE");
+    -- frame.orderText:SetJustifyV("MIDDLE");
+    -- frame.orderText:SetText(frame.order);
+    -- DEBUG INFO --
+
+    SetAnimation(frame.castingBar)
+    return frame;
+end
+
+local function RegernerateFrames(pool, container)
+    local currentFrames = #pool;
+    local containerHeight = container:GetHeight();
+    local targetFrames = math.ceil(containerHeight / CASTING_BAR_HEIGHT);
+    local removingIndexes = {};
+    if (currentFrames < targetFrames) then
+        for i = 1, targetFrames do
+            if (pool[i] == nil) then
+                local frame = CreateCastingBar(i, container);
+                tinsert(pool, frame);
+            end
+        end
+    elseif (currentFrames > targetFrames) then
+        for i = 1, currentFrames do
+            local tmp = pool[i];
+            if (tmp.order >= targetFrames) then
+                tinsert(removingIndexes, i);
+            end
+        end
+
+        for i = #removingIndexes, 1, -1 do
+            local index = removingIndexes[i];
+            local frame = pool[index];
+            frame:Hide();
+            table.remove(pool, index);
+        end
+
+    end
+end
+
 local function CreateCombatTextFrame()
     local f = CreateFrame("Frame", "CombatTextFrame", UIParent);
     f:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
@@ -20,10 +141,14 @@ local function CreateCombatTextFrame()
     f:SetScript("OnEvent", CT.COMBAT_LOG_EVENT_UNFILTERED);
     f:SetSize(300, 100);
 
+    -- Make the frame resizable
+    f:SetResizeBounds(300, 100, 3000, 1000)
+
     local savedFramePoints = core:GetFramePoints("combatTextFrame");
     if savedFramePoints then
         f:SetPoint(savedFramePoints.point, savedFramePoints.relativeTo, savedFramePoints.relativePoint,
             savedFramePoints.xOfs, savedFramePoints.yOfs);
+        f:SetSize(savedFramePoints.containerWidth, savedFramePoints.containerHeight);
     else
         f:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
     end
@@ -59,70 +184,38 @@ local function CreateCombatTextFrame()
     editModeFrameMaskText:SetText(L["combatText"])
     editModeFrameMask:Hide()
 
+    -- Add a resize button
+    f.resizeButton = CreateFrame("Button", nil, editModeFrameMask)
+    f.resizeButton:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+    f.resizeButton:SetSize(16, 16)
+    f.resizeButton:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    f.resizeButton:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+    f.resizeButton:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+
+    f.resizeButton:SetScript("OnMouseDown", function(self, button)
+        if button == "LeftButton" then
+            f:StartSizing("BOTTOMRIGHT")
+            self:GetHighlightTexture():Hide() -- Hide highlight texture while sizing
+        end
+    end)
+
+    f.resizeButton:SetScript("OnMouseUp", function(self, button)
+        f:StopMovingOrSizing()
+        self:GetHighlightTexture():Show()
+        -- Save the new size here
+        RegernerateFrames(f.framePool, f);
+        SaveFramePoints(f, "combatText", "combatTextFrame");
+    end)
+
+    f.resizeButton:Hide();
+
     -- Frames
     f.framePool = {};
-    for i = 1, 6 do
-        local frame = CreateFrame("Frame", "CombatTextFrame" .. i, f);
-        frame:SetSize(300, 20);
-        frame:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 20);
-        frame:SetFrameStrata("HIGH");
-        frame:SetFrameLevel(2);
-        frame.order = 0;
-        frame:SetAlpha(0);
-        SetAnimation(frame);
-
-        -- Store combat log event data
-        frame.logData = nil;
-
-        -- Spell icon
-        frame.icon = frame:CreateTexture(nil, "OVERLAY");
-        frame.icon:SetSize(20, 20);
-        frame.icon:SetPoint("LEFT", frame, "LEFT", 0, 0);
-
-        -- Spell name/destination
-        frame.generalInfoText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
-        frame.generalInfoText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
-        frame.generalInfoText:SetTextColor(1, 1, 1, 1)
-        frame.generalInfoText:SetPoint("LEFT", frame.icon, "RIGHT", 5, 0);
-        frame.generalInfoText:SetJustifyH("LEFT");
-        frame.generalInfoText:SetJustifyV("MIDDLE");
-
-        -- Damage amount
-        frame.damageText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
-        frame.damageText:SetPoint("RIGHT", frame, "RIGHT", -5, 0);
-        frame.damageText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
-        frame.damageText:SetTextColor(1, 1, 1, 1)
-        frame.damageText:SetJustifyH("RIGHT");
-        frame.damageText:SetJustifyV("MIDDLE");
-
-        -- Heal amount
-        frame.healText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
-        frame.healText:SetPoint("RIGHT", frame, "RIGHT", -5, 0);
-        frame.healText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
-        frame.healText:SetTextColor(1, 1, 1, 1)
-        frame.healText:SetJustifyH("RIGHT");
-        frame.healText:SetJustifyV("MIDDLE");
-        frame.healText:SetTextColor(0, 1, 0, 1);
-
-        -- Casting bar
-        frame.castingBar = CreateFrame("StatusBar", "CombatTextFrame" .. i .. "CastingBar", frame);
-        frame.castingBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 25, 0);
-        frame.castingBar:SetSize(275, 20);
-        frame.castingBar:SetStatusBarTexture("UI-CastingBar-Filling-Background");
-        frame.castingBar:SetFrameStrata("HIGH");
-        frame.castingBar:SetFrameLevel(1);
-        -- Set spark
-        frame.castingBar.Spark = frame.castingBar:CreateTexture(nil, "OVERLAY");
-        frame.castingBar.Spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark");
-        frame.castingBar.Spark:SetBlendMode("ADD");
-        frame.castingBar.Spark:SetSize(20, 30);
-        frame.castingBar.Spark:SetPoint("CENTER", frame.castingBar:GetStatusBarTexture(), "RIGHT", 0, 0);
-
-        SetAnimation(frame.castingBar)
-
+    local numberOfFrames = f:GetHeight() / CASTING_BAR_HEIGHT;
+    for i = 1, numberOfFrames do
+        local frame = CreateCastingBar(i, f);
         tinsert(f.framePool, frame);
     end
-
     return f;
 end
 
@@ -142,6 +235,30 @@ function CT:ToggleBackground(value)
     end
 end
 
+function CT:ToggleTargetName(value)
+    if (not value) then
+        for i = 1, #self.frame.framePool do
+            self.frame.framePool[i].generalInfoText:Hide();
+        end
+    else
+        for i = 1, #self.frame.framePool do
+            self.frame.framePool[i].generalInfoText:Show();
+        end
+    end
+end
+
+function CT:ToggleCastingAnimation(value)
+    if (not value) then
+        for i = 1, #self.frame.framePool do
+            self.frame.framePool[i].castingBar:Hide();
+        end
+    else
+        for i = 1, #self.frame.framePool do
+            self.frame.framePool[i].castingBar:Show();
+        end
+    end
+end
+
 function CT:Initialize()
     self.frame = CreateCombatTextFrame();
     if not PDD.db.profile.combatText.enable then
@@ -150,10 +267,16 @@ function CT:Initialize()
     if not PDD.db.profile.combatText.showBackground then
         self:ToggleBackground(false);
     end
+    if not PDD.db.profile.combatText.showTargetName then
+        self:ToggleTargetName(false);
+    end
+    if not PDD.db.profile.combatText.showCastingAnimation then
+        self:ToggleCastingAnimation(false);
+    end
 end
 
 function CT:FindNextAvailableLogIndex()
-    for i = 1, 6 do
+    for i = 1, #self.frame.framePool do
         if (self.frame.framePool[i].order == 0) then
             return i;
         end
@@ -182,15 +305,19 @@ function CT:HandleStartCastEvent(castGUID, spellId, spellCastType)
     if not frame then
         return;
     end
+    local name, startTimeMS, endTimeMS, castID = UnitChannelInfo("player");
+    if castID ~= nil and spellCastType ~= "empower" then
+        spellCastType = "channel";
+    end
+
     frame.logData.eventType = "SPELL_CAST_START"
     frame.logData.spellCastType = spellCastType
     local destName = frame.logData.destName;
     local spellName = frame.logData.spellName;
+    frame.spellNameText:SetText(spellName);
     frame.icon:SetTexture(GetSpellTexture(spellId));
     if destName then
-        frame.generalInfoText:SetText(spellName .. " -> " .. destName);
-    else
-        frame.generalInfoText:SetText(spellName);
+        frame.generalInfoText:SetText(" -> " .. destName);
     end
     frame.damageText:SetText("");
     frame.healText:SetText("");
@@ -216,7 +343,6 @@ function CT:HandleStartCastEvent(castGUID, spellId, spellCastType)
         spellCastType == "channel" and "LEFT" or "RIGHT", 0, 0);
 
     local spellCastTime = (endTime and startTime) and (endTime - startTime) or 0;
-
     frame.castingBar:SetMinMaxValues(0, 100);
     frame.castingBar:SetValue(0);
     frame.castingBar:SetAlpha(1);
@@ -227,15 +353,18 @@ function CT:HandleStartCastEvent(castGUID, spellId, spellCastType)
         frame.castingBar:SetAlpha(0);
     end
 
-    for i = 1, 6 do
+    for i = 1, #self.frame.framePool do
         if (i ~= frameIndex and self.frame.framePool[i].order ~= 0) then
-            local newOrder = self.frame.framePool[i].order + 1 > 5 and 0 or self.frame.framePool[i].order + 1;
+            local newOrder = self.frame.framePool[i].order + 1 > #self.frame.framePool - 1 and 0 or
+                                 self.frame.framePool[i].order + 1;
             self.frame.framePool[i].order = newOrder;
             local y = -20 * (self.frame.framePool[i].order - 1);
             local currentY = select(5, self.frame.framePool[i]:GetPoint());
             self.frame.framePool[i]:StartAnimation(currentY, y, 0.2, function(value)
                 self.frame.framePool[i]:SetPoint("TOPLEFT", 0, value);
             end)
+
+            -- self.frame.framePool[i].orderText:SetText(newOrder);
 
             if newOrder == 0 then
                 self.frame.framePool[i]:SetAlpha(0);
@@ -254,9 +383,9 @@ end
 function CT:FindTargetFrameByEvent(eventType, castGUID, spellId, targetCastType)
     local outputFrame = nil;
     local index = -1;
-    for i = 1, 6 do
+    local numberOfFrames = #self.frame.framePool;
+    for i = 1, numberOfFrames do
         local frame = self.frame.framePool[i];
-        -- print(frame.logData.spellName, frame.logData.destGUID)
         if (frame.logData ~= nil and frame.logData.eventType == eventType and
             (frame.logData.castGUID == castGUID or frame.logData.spellId == spellId or frame.logData.spellName ==
                 spellId)) then
@@ -312,7 +441,7 @@ function CT:HandleSpellDamageEvent(spellName, spellSchool, amount, isCritical, d
         frame.damageText:SetTextColor(spellColor.r, spellColor.g, spellColor.b, 1);
         frame.damageText:SetText(frame.logData.amount);
         if #frame.logData.destGUIDs > 1 then
-            local text = spellName .. " -> " .. destName .. " + " .. #frame.logData.destGUIDs - 1;
+            local text = " -> " .. destName .. " + " .. #frame.logData.destGUIDs - 1;
             frame.generalInfoText:SetText(text);
         end
         if isCritical then
@@ -337,7 +466,7 @@ function CT:HandleSpellHealEvent(spellName, spellSchool, amount, isCritical, des
         end
         frame.healText:SetText(frame.logData.healAmount);
         if #frame.logData.destGUIDs > 1 then
-            local text = spellName .. " -> " .. destName .. " + " .. #frame.logData.destGUIDs - 1;
+            local text = " -> " .. destName .. " + " .. #frame.logData.destGUIDs - 1;
             frame.generalInfoText:SetText(text);
         end
     end
@@ -350,7 +479,6 @@ function CT:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
         local timestamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID,
             destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted,
             blocked, absorbed, critical = CombatLogGetCurrentEventInfo();
-
         -- if (eventType == "SPELL_CAST_START") then
         --     if (sourceGUID == UnitGUID("player") or sourceGUID == UnitGUID("pet")) then
         --         local frameIndex = CT:FindNextAvailableLogIndex();
@@ -409,7 +537,12 @@ function CT:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
         local unit, castGUID, spellID = ...;
         if unit == "player" and (not tContains(FILTERED_SPELL_ID_LIST, spellID)) then
-            CT:HandleCastSuccessEvent(castGUID, spellID, true);
+            local shouldStopAnimation = true
+            local name, startTimeMS, endTimeMS, castID = UnitChannelInfo("player");
+            if castID ~= nil then
+                shouldStopAnimation = false
+            end
+            CT:HandleCastSuccessEvent(castGUID, spellID, shouldStopAnimation);
         end
     end
 
@@ -417,7 +550,7 @@ function CT:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
         local unit, castGUID, spellID = ...;
         if unit == "player" then
             local frameIndex = CT:FindNextAvailableLogIndex();
-            -- CT:HandleStartCastEvent(frameIndex, spellID, nil, nil, "channel");
+            CT:HandleStartCastEvent(frameIndex, spellID, nil, nil, "channel");
         end
     end
 
@@ -456,11 +589,15 @@ function CT:ToggleEditMode(value)
         frame:EnableMouse(true)
         frame:SetMovable(true)
         frame:RegisterForDrag("LeftButton")
+        frame:SetResizable(true)
+        frame.resizeButton:Show()
     else
         local frame = self.frame;
         frame.editModeFrameMask:Hide()
         frame:EnableMouse(false)
         frame:SetMovable(false)
+        frame:SetResizable(false)
+        frame.resizeButton:Hide()
         if PDD.db.profile.combatText.showBackground then
             self:ToggleBackground(true);
         end

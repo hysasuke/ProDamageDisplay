@@ -41,6 +41,28 @@ PDD.options = {
                         PDD.db.profile.combatText.showBackground = value
                         core.CT:ToggleBackground(value)
                     end
+                },
+                showTargetName = {
+                    type = "toggle",
+                    name = L["showTargetName"],
+                    get = function()
+                        return PDD.db.profile.combatText.showTargetName
+                    end,
+                    set = function(info, value)
+                        PDD.db.profile.combatText.showTargetName = value
+                        core.CT:ToggleTargetName(value)
+                    end
+                },
+                showCastingAnimation = {
+                    type = "toggle",
+                    name = L["showCastingAnimation"],
+                    get = function()
+                        return PDD.db.profile.combatText.showCastingAnimation
+                    end,
+                    set = function(info, value)
+                        PDD.db.profile.combatText.showCastingAnimation = value
+                        core.CT:ToggleCastingAnimation(value)
+                    end
                 }
             }
         }
@@ -106,4 +128,4 @@ function PDD:OnInitialize()
     core.CT:Initialize();
 end
 
-PDD:RegisterEvent("PLAYER_ENTERING_WORLD");
+-- PDD:RegisterEvent("PLAYER_ENTERING_WORLD");
