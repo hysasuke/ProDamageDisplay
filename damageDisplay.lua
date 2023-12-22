@@ -273,6 +273,15 @@ function CT:Initialize()
     if not PDD.db.profile.combatText.showCastingAnimation then
         self:ToggleCastingAnimation(false);
     end
+    self.frame:SetAlpha(PDD.db.profile.combatText.frameAlpha);
+    CT:UpdateFontColor(PDD.db.profile.combatText.fontColor.r, PDD.db.profile.combatText.fontColor.g,
+        PDD.db.profile.combatText.fontColor.b, PDD.db.profile.combatText.fontColor.a);
+
+    local damageTextColorSetting = PDD.db.profile.combatText.damageTextColor;
+    CT:UpdateDamageTextColor(damageTextColorSetting.useDamageTypeColor, damageTextColorSetting.r,
+        damageTextColorSetting.g, damageTextColorSetting.b, damageTextColorSetting.a);
+    CT:UpdateDamageTextFontSize(PDD.db.profile.combatText.damageTextFontSize);
+    CT:UpdateHealTextFontSize(PDD.db.profile.combatText.healTextFontSize);
 end
 
 function CT:FindNextAvailableLogIndex()
@@ -439,15 +448,18 @@ function CT:HandleSpellDamageEvent(spellName, spellSchool, amount, isCritical, d
         if not tContains(frame.logData.destGUIDs, destGUID) then
             tinsert(frame.logData.destGUIDs, destGUID);
         end
-        local spellColor = GetSpellSchoolColor(spellSchool);
-        frame.damageText:SetTextColor(spellColor.r, spellColor.g, spellColor.b, 1);
+        if PDD.db.profile.combatText.damageTextColor.useDamageTypeColor then
+            local spellColor = GetSpellSchoolColor(spellSchool);
+            frame.damageText:SetTextColor(spellColor.r, spellColor.g, spellColor.b, 1);
+        end
         frame.damageText:SetText(frame.logData.amount);
         if #frame.logData.destGUIDs > 1 then
             local text = " -> " .. destName .. " + " .. #frame.logData.destGUIDs - 1;
             frame.generalInfoText:SetText(text);
         end
         if isCritical then
-            frame.damageText:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE,THICK");
+            local fontSize = PDD.db.profile.combatText.criticalDamageTextFontSize;
+            frame.damageText:SetFont("Fonts\\FRIZQT__.TTF", fontSize, "OUTLINE,THICK");
         end
     end
 end
@@ -459,12 +471,13 @@ function CT:HandleSpellHealEvent(spellName, spellSchool, amount, isCritical, des
         if not tContains(frame.logData.destGUIDs, destGUID) then
             tinsert(frame.logData.destGUIDs, destGUID);
         end
+        local healFontSize = PDD.db.profile.combatText.healTextFontSize;
         if frame.logData.amount > 0 then
             frame.damageText:SetPoint("RIGHT", frame.healText, "LEFT", -1, 0);
-            frame.healText:SetFont(frame.healText:GetFont(), 10, "OUTLINE");
+            frame.healText:SetFont(frame.healText:GetFont(), healFontSize - 2, "OUTLINE");
         else
             frame.damageText:SetPoint("RIGHT", frame, "RIGHT", -5, 0);
-            frame.healText:SetFont(frame.healText:GetFont(), 12, "OUTLINE");
+            frame.healText:SetFont(frame.healText:GetFont(), healFontSize, "OUTLINE");
         end
         frame.healText:SetText(frame.logData.healAmount);
         if #frame.logData.destGUIDs > 1 then
@@ -638,5 +651,42 @@ function CT:ToggleAutoHide(value)
         end
     else
         self.frame:Show();
+    end
+end
+
+function CT:UpdateFrameAlpha(value)
+    self.frame:SetAlpha(value);
+end
+
+function CT:UpdateFontColor(r, g, b, a)
+    for i = 1, #self.frame.framePool do
+        self.frame.framePool[i].spellNameText:SetTextColor(r, g, b, a);
+        self.frame.framePool[i].generalInfoText:SetTextColor(r, g, b, a);
+    end
+end
+
+function CT:UpdateDamageTextColor(useDamageTypeColor, r, g, b, a)
+    if not useDamageTypeColor then
+        for i = 1, #self.frame.framePool do
+            self.frame.framePool[i].damageText:SetTextColor(r, g, b, a);
+        end
+    end
+end
+
+function CT:UpdateHealTextColor(r, g, b, a)
+    for i = 1, #self.frame.framePool do
+        self.frame.framePool[i].healText:SetTextColor(r, g, b, a);
+    end
+end
+
+function CT:UpdateDamageTextFontSize(value)
+    for i = 1, #self.frame.framePool do
+        self.frame.framePool[i].damageText:SetFont("Fonts\\FRIZQT__.TTF", value, "OUTLINE")
+    end
+end
+
+function CT:UpdateHealTextFontSize(value)
+    for i = 1, #self.frame.framePool do
+        self.frame.framePool[i].healText:SetFont("Fonts\\FRIZQT__.TTF", value, "OUTLINE")
     end
 end
