@@ -13,7 +13,7 @@ local function CreateCastingBar(i, parent)
     frame:SetHeight(CASTING_BAR_HEIGHT);
     frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, CASTING_BAR_HEIGHT)
     frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, CASTING_BAR_HEIGHT)
-    frame:SetFrameStrata("HIGH");
+    frame:SetFrameStrata("MEDIUM");
     frame:SetFrameLevel(2);
     frame.order = 0;
     frame:SetAlpha(0);
@@ -152,7 +152,7 @@ local function CreateCombatTextFrame()
     else
         f:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
     end
-    f:SetFrameStrata("HIGH");
+    f:SetFrameStrata("MEDIUM");
     f:SetFrameLevel(1);
     f:RegisterForDrag("LeftButton");
     f:SetScript("OnDragStart", f.StartMoving);
@@ -606,5 +606,37 @@ function CT:ToggleEditMode(value)
         if not PDD.db.profile.combatText.enable then
             self:Toggle(false);
         end
+    end
+end
+
+PDD:RegisterEvent("PLAYER_REGEN_DISABLED", function()
+    CT:PLAYER_REGEN_DISABLED();
+    CT.playerInCombat = true;
+end);
+
+PDD:RegisterEvent("PLAYER_REGEN_ENABLED", function()
+    CT:PLAYER_REGEN_ENABLED();
+    CT.playerInCombat = false;
+end);
+
+function CT:PLAYER_REGEN_DISABLED(event, ...)
+    if PDD.db.profile.combatText.autoHide then
+        self.frame:Show();
+    end
+end
+
+function CT:PLAYER_REGEN_ENABLED(event, ...)
+    if PDD.db.profile.combatText.autoHide then
+        self.frame:Hide();
+    end
+end
+
+function CT:ToggleAutoHide(value)
+    if value then
+        if not CT.playerInCombat then
+            self.frame:Hide();
+        end
+    else
+        self.frame:Show();
     end
 end

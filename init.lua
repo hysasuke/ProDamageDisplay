@@ -63,6 +63,18 @@ PDD.options = {
                         PDD.db.profile.combatText.showCastingAnimation = value
                         core.CT:ToggleCastingAnimation(value)
                     end
+                },
+                autoHide = {
+                    type = "toggle",
+                    name = L["autoHide"],
+                    desc = L["autoHideDesc"],
+                    get = function()
+                        return PDD.db.profile.combatText.autoHide
+                    end,
+                    set = function(info, value)
+                        PDD.db.profile.combatText.autoHide = value
+                        core.CT:ToggleAutoHide(value)
+                    end
                 }
             }
         }
