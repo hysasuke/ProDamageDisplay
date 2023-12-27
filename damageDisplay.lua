@@ -209,7 +209,7 @@ local function CreateCombatTextFrame()
 
     -- Frames
     f.framePool = {};
-    local numberOfFrames = f:GetHeight() / CASTING_BAR_HEIGHT;
+    local numberOfFrames = math.ceil(f:GetHeight() / CASTING_BAR_HEIGHT);
     for i = 1, numberOfFrames do
         local frame = CreateCastingBar(i, f);
         tinsert(f.framePool, frame);
