@@ -6,7 +6,7 @@ local CT = {};
 core.CT = CT;
 
 local CASTING_BAR_HEIGHT = 20;
-
+local DEFAULT_FONT = "SystemFont_Shadow_Med1";
 local function CreateCastingBar(i, parent)
     local frame = CreateFrame("Frame", "CombatTextFrame" .. i, parent);
     -- frame:SetSize(300, 20);
@@ -29,7 +29,7 @@ local function CreateCastingBar(i, parent)
 
     -- Spell Name
     frame.spellNameText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
-    frame.spellNameText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    frame.spellNameText:SetFont(DEFAULT_FONT, 12, "OUTLINE");
     frame.spellNameText:SetTextColor(1, 1, 1, 1)
     frame.spellNameText:SetPoint("LEFT", frame.icon, "RIGHT", 5, 0);
     frame.spellNameText:SetJustifyH("LEFT");
@@ -37,7 +37,7 @@ local function CreateCastingBar(i, parent)
 
     -- Target 
     frame.generalInfoText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
-    frame.generalInfoText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    frame.generalInfoText:SetFont(DEFAULT_FONT, 12, "OUTLINE");
     frame.generalInfoText:SetTextColor(1, 1, 1, 1)
     frame.generalInfoText:SetPoint("LEFT", frame.spellNameText, "RIGHT", 0, 0);
     frame.generalInfoText:SetJustifyH("LEFT");
@@ -46,7 +46,7 @@ local function CreateCastingBar(i, parent)
     -- Damage amount
     frame.damageText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
     frame.damageText:SetPoint("RIGHT", frame, "RIGHT", -5, 0);
-    frame.damageText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    frame.damageText:SetFont(DEFAULT_FONT, 12, "OUTLINE");
     frame.damageText:SetTextColor(1, 1, 1, 1)
     frame.damageText:SetJustifyH("RIGHT");
     frame.damageText:SetJustifyV("MIDDLE");
@@ -54,7 +54,7 @@ local function CreateCastingBar(i, parent)
     -- Heal amount
     frame.healText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
     frame.healText:SetPoint("RIGHT", frame, "RIGHT", -5, 0);
-    frame.healText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    frame.healText:SetFont(DEFAULT_FONT, 12, "OUTLINE");
     frame.healText:SetTextColor(1, 1, 1, 1)
     frame.healText:SetJustifyH("RIGHT");
     frame.healText:SetJustifyV("MIDDLE");
@@ -78,14 +78,14 @@ local function CreateCastingBar(i, parent)
     -- DEBUG INFO -- 
     -- frame.indexText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal");
     -- frame.indexText:SetPoint("CENTER", frame, "CENTER", 0, 0);
-    -- frame.indexText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    -- frame.indexText:SetFont(DEFAULT_FONT, 12, "OUTLINE");
     -- frame.indexText:SetTextColor(1, 0, 0, 1)
     -- frame.indexText:SetJustifyH("MIDDLE");
     -- frame.indexText:SetJustifyV("MIDDLE");
     -- frame.indexText:SetText(i);
     -- frame.orderText = frame:CreateFontString(nil, "OVERLAY", "
     -- frame.orderText:SetPoint("CENTER", frame, "CENTER", 10, 0);
-    -- frame.orderText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE");
+    -- frame.orderText:SetFont(DEFAULT_FONT, 12, "OUTLINE");
     -- frame.orderText:SetTextColor(1, 0, 0, 1)
     -- frame.orderText:SetJustifyH("MIDDLE");
     -- frame.orderText:SetJustifyV("MIDDLE");
@@ -176,7 +176,7 @@ local function CreateCombatTextFrame()
     editModeFrameMaskTexture:SetColorTexture(0, 0, 0, 0.8)
     editModeFrameMaskTexture:SetBlendMode("BLEND")
     local editModeFrameMaskText = editModeFrameMask:CreateFontString(nil, "OVERLAY")
-    editModeFrameMaskText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    editModeFrameMaskText:SetFont(DEFAULT_FONT, 12, "OUTLINE")
     editModeFrameMaskText:SetPoint("CENTER", editModeFrameMask, "CENTER", 0, 0)
     editModeFrameMaskText:SetTextColor(1, 1, 1, 1)
     editModeFrameMaskText:SetJustifyH("CENTER")
@@ -211,7 +211,7 @@ local function CreateCombatTextFrame()
 
     -- Frames
     f.framePool = {};
-    local numberOfFrames = f:GetHeight() / CASTING_BAR_HEIGHT;
+    local numberOfFrames = math.ceil(f:GetHeight() / CASTING_BAR_HEIGHT);
     for i = 1, numberOfFrames do
         local frame = CreateCastingBar(i, f);
         tinsert(f.framePool, frame);
@@ -459,7 +459,7 @@ function CT:HandleSpellDamageEvent(spellName, spellSchool, amount, isCritical, d
         end
         if isCritical then
             local fontSize = PDD.db.profile.combatText.criticalDamageTextFontSize;
-            frame.damageText:SetFont("Fonts\\FRIZQT__.TTF", fontSize, "OUTLINE,THICK");
+            frame.damageText:SetFont(DEFAULT_FONT, fontSize, "OUTLINE,THICK");
         end
     end
 end
@@ -681,12 +681,12 @@ end
 
 function CT:UpdateDamageTextFontSize(value)
     for i = 1, #self.frame.framePool do
-        self.frame.framePool[i].damageText:SetFont("Fonts\\FRIZQT__.TTF", value, "OUTLINE")
+        self.frame.framePool[i].damageText:SetFont(DEFAULT_FONT, value, "OUTLINE")
     end
 end
 
 function CT:UpdateHealTextFontSize(value)
     for i = 1, #self.frame.framePool do
-        self.frame.framePool[i].healText:SetFont("Fonts\\FRIZQT__.TTF", value, "OUTLINE")
+        self.frame.framePool[i].healText:SetFont(DEFAULT_FONT, value, "OUTLINE")
     end
 end
