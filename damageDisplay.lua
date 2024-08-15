@@ -294,7 +294,7 @@ function CT:FindNextAvailableLogIndex()
 end
 
 function CT:HandleSpellSentEvent(frameIndex, castGUID, spellID, destName)
-    local spellName = GetSpellInfo(spellID);
+    local spellName = C_Spell.GetSpellName(spellID);
     local frame = CT.frame.framePool[frameIndex];
     frame.logData = {
         eventType = "SPELL_SENT",
@@ -324,7 +324,7 @@ function CT:HandleStartCastEvent(castGUID, spellId, spellCastType)
     local destName = frame.logData.destName;
     local spellName = frame.logData.spellName;
     frame.spellNameText:SetText(spellName);
-    frame.icon:SetTexture(GetSpellTexture(spellId));
+    frame.icon:SetTexture(C_Spell.GetSpellTexture(spellId));
     if destName then
         frame.generalInfoText:SetText(" -> " .. destName);
     end
